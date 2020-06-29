@@ -11,7 +11,7 @@ use async_std::fs::File;
 use async_std::prelude::*;
 
 pub async fn get_blog_info(username: String) -> Result<Value> {
-  let base_url = format!("https://{}.lofter.com", username);
+  let base_url = format!("https://{}.lofter.com", username.to_lowercase());
   let home_html = get_html(base_url.as_str()).await?;
   let blog_id_str = utils::get_match(r"blogId=(\d+)", home_html.as_str());
   if blog_id_str == None {
@@ -20,14 +20,14 @@ pub async fn get_blog_info(username: String) -> Result<Value> {
   let blog_id = blog_id_str.unwrap().parse::<i64>()?;
   let title = utils::get_match(r"<title>(.*)</title>", home_html.as_str()).expect("No title");
   Ok(json!({
-    "username": username,
+    "username": username.to_lowercase(),
     "id": blog_id,
     "title": title
   }))
 }
 
 pub async fn get_post_list(username: String, blog_id: i64) -> Result<Value> {
-  let base_url = format!("https://{}.lofter.com", username);
+  let base_url = format!("https://{}.lofter.com", username.to_lowercase());
   let url = format!("{}/dwr/call/plaincall/ArchiveBean.getArchivePostByTime.dwr", base_url.as_str());
   let data = format!("callCount=1
 scriptSessionId=${{scriptSessionId}}187
@@ -62,7 +62,7 @@ batchId=461032", blog_id, utils::get_current_time());
 pub async fn get_post(
   username: String, blog_id: i64, post_id: i64,
 ) -> Result<Value> {
-  let base_url = format!("https://{}.lofter.com", username);
+  let base_url = format!("https://{}.lofter.com", username.to_lowercase());
   let post_url = format!(
     "{}/post/{:x}_{:x}",
     base_url.as_str(),

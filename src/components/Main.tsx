@@ -45,7 +45,7 @@ export const Main: React.FC = () => {
     try {
       await window.tauri.writeFile({
         file: filename,
-        contents: escapeSpecials(consoleRef.current.innerText, false)
+        contents: `${ escapeSpecials(consoleRef.current.innerText, false) }\n`
       })
       log(`日志已保存到 <a href="#" onclick="(function(e){e.preventDefault();window.tauri.open('${ filename }')})(event)">${ filename }</a>`)
     } catch (e) {

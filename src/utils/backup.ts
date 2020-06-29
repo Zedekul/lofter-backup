@@ -55,7 +55,10 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
     post_id: post.id
   })
   const dom = parseHTML(rawHTML)
-  const content = dom.querySelector(".g-bd")
+  let content = dom.querySelector(".g-bd")
+  if (content === null) {
+    content = dom.querySelector(".main")
+  }
   if (content === null) {
     throw new Error("未知错误。")
   }
@@ -148,7 +151,7 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions): P
         try {
           await backupCommonPost(post, blog, infoString, options)
         } catch (e) {
-          log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, "warning", true)
+          log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, options.allowFailure ? "warning" : "error", true)
           if (!options.allowFailure) {
             failed = true
             break

@@ -4,6 +4,8 @@ import { invoke } from "../utils/tauri"
 import { contextData, useGlobalState } from "../utils/context"
 import { saveData } from "../utils/utils"
 
+const isValid = (username: string) => /^[A-Za-z0-9_-]+$/.test(username)
+
 export const ByBlog: React.FC<{
   setPosts: (posts: PostEntry[] | null, logging?: boolean) => void
 }> = ({ setPosts }) => {
@@ -76,13 +78,13 @@ export const ByBlog: React.FC<{
     }
 
     setLocalPosts(posts)
-    setPreparedUsername(username)
+    setPreparedUsername(username.toLowerCase())
     setPosts(posts, true)
     setIsWorking(false)
   }
 
   useEffect(() => {
-    if (username === preparedUsername && localPosts !== null) {
+    if (username.toLowerCase() === preparedUsername && localPosts !== null) {
       setPosts(localPosts, false)
     } else {
       setPosts(null)
@@ -99,14 +101,14 @@ export const ByBlog: React.FC<{
                disabled={ isWorking }
                value={ username }
                onChange={ (e) => isWorking || setUsername(e.currentTarget.value) }
-               onKeyPress={ (e) => isWorking || username === "" || e.key !== "Enter" || getBlogInfo() }
+               onKeyPress={ (e) => isWorking || !isValid(username) || e.key !== "Enter" || getBlogInfo() }
         />
         <span>.lofter.com</span>
       </div>
     </div>
     <div className="input-group">
       <button className="button"
-              disabled={ isWorking || username === "" }
+              disabled={ isWorking || !isValid(username) }
               onClick={ getBlogInfo }>
         获取内容列表
       </button>

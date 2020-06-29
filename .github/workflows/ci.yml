@@ -15,11 +15,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: Cache Cargo bin
-        uses: actions/cache@v1
-        with:
-          path: ~/.cargo/bin/
-          key: ${{ matrix.os }}-stable-cargo-bin
       - name: Cache Cargo build
         uses: actions/cache@v1
         with:
@@ -49,7 +44,6 @@ jobs:
           node-version: '12'
       - run: yarn
       - run: yarn build
-      - run: yarn tauri build
         env:
           MACOSX_DEPLOYMENT_TARGET: '10.14'
       - uses: actions/upload-artifact@v1

@@ -34,5 +34,5 @@ export const logToElement = (
     consoleElement.lastElementChild.classList.add("hidden-object")
   }
   consoleElement.appendChild(entry)
-  consoleElement.scrollTo(0, consoleElement.scrollHeight)
+  consoleElement.scrollTop = consoleElement.scrollHeight
 }

@@ -46,7 +46,17 @@ jobs:
       - run: yarn build
         env:
           MACOSX_DEPLOYMENT_TARGET: '10.14'
+      - name: After build
+        run: |
+          mkdir -p ./build
+          test -e ./src-tauri/target/release/lofter-backup && mv ./src-tauri/target/release/lofter-backup ./build
+          test -e ./src-tauri/target/release/bundle && mv ./src-tauri/target/release/bundle ./build
+          test -e ./src-tauri/target/release/lofter-backup.x64.msi && \
+            mv ./src-tauri/target/release/lofter-backup.x64.msi ./build && \
+            mv ./src-tauri/target/release/lofter-backup.exe ./build
+          true
+        shell: bash
       - uses: actions/upload-artifact@v1
         with:
           name: lofter-backup-(${{ matrix.os }})
-          path: ./src-tauri/target/release/bundle
+          path: ./build

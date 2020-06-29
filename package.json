@@ -6,7 +6,7 @@
   "scripts": {
     "watch": "parcel -p 4000 src/index.html",
     "build": "parcel build src/index.html --public-url ./ && tauri build",
-    "build-debug": "NODE_ENV=development parcel build src/index.html --public-url ./ --no-minify && tauri build --debug",
+    "build-debug": "parcel build src/index.html --public-url ./ --no-minify && tauri build --debug",
     "dev": "tauri dev"
   },
   "dependencies": {
@@ -24,7 +24,8 @@
     "react-dom": "preact/compat"
   },
   "browserslist": [
-    "last 2 Chrome versions"
+    "last 2 Chrome versions",
+    "edge 14"
   ],
   "husky": {
     "hooks": {

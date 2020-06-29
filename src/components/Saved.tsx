@@ -83,7 +83,7 @@ const exportBlogs = () => {
     "标题",
     "上次访问时间",
     "内容数量",
-    "原地址",
+    "地址",
   ], ...sorted.map((blog, i) => [
     i + 1,
     blog.id,

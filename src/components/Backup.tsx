@@ -1,5 +1,5 @@
 import { ByBlog } from "./ByBlog"
-import React, { useState } from "react"
+import React, { ChangeEvent, useState } from "react"
 import { BackupNames, BackupType } from "./Main"
 import { contextData, useGlobalState } from "../utils/context"
 import { PostEntry } from "../utils/models"
@@ -51,7 +51,8 @@ export const Backup: React.FC = () => {
       return
     }
     setIsWorking(true)
-    if (await backupPosts(posts, { ...backupOptions, dataPath })) {
+    const options = Object.assign({dataPath}, backupOptions)
+    if (await backupPosts(posts, options)) {
       log(`详情可在<a href="#/saved">【已保存的数据】</a>页面查看。`)
     }
     setIsWorking(false)
@@ -60,6 +61,12 @@ export const Backup: React.FC = () => {
   if (backupType === null) {
     setBackupType("blog")
   }
+
+  const changeOptions = (key: keyof typeof backupOptions) =>
+    (e: ChangeEvent<HTMLInputElement>) => setBackupOptions(Object.assign(backupOptions, {
+      [key]: e.currentTarget.checked
+    }))
+
   return <>
     <div className="input-group">
       <label htmlFor="input-type">备份类型</label>
@@ -78,33 +85,25 @@ export const Backup: React.FC = () => {
       <div className="input-group">
         <input type="checkbox" id="skipRepeated" checked={ backupOptions.skipRepeated }
                disabled={ isWorking }
-               onChange={ (e) => setBackupOptions({
-                 ...backupOptions, skipRepeated: e.currentTarget.checked
-               }) }/>
+               onChange={ changeOptions("skipRepeated") }/>
         <label className="label-inline" htmlFor="skipRepeated">跳过已备份文章</label>
       </div>
       <div className="input-group">
         <input type="checkbox" id="allowFailure" checked={ backupOptions.allowFailure }
                disabled={ isWorking }
-               onChange={ (e) => setBackupOptions({
-                 ...backupOptions, allowFailure: e.currentTarget.checked
-               }) }/>
+               onChange={ changeOptions("allowFailure") }/>
         <label className="label-inline" htmlFor="allowFailure">忽略错误。</label>
       </div>
       <div className="input-group">
         <input type="checkbox" id="skipImages" checked={ backupOptions.skipImages }
                disabled={ isWorking }
-               onChange={ (e) => setBackupOptions({
-                 ...backupOptions, skipImages: e.currentTarget.checked
-               }) }/>
+               onChange={ changeOptions("skipImages") }/>
         <label className="label-inline" htmlFor="skipImages">不备份图片</label>
       </div>
       <div className="input-group">
         <input type="checkbox" id="skipVideos" checked={ backupOptions.skipVideos }
                disabled={ isWorking }
-               onChange={ (e) => setBackupOptions({
-                 ...backupOptions, skipVideos: e.currentTarget.checked
-               }) }/>
+               onChange={ changeOptions("skipVideos") }/>
         <label className="label-inline" htmlFor="skipVideos">不备份视频</label>
       </div>
       <div className="input-group">

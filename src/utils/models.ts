@@ -1,3 +1,5 @@
+import { IDDict } from "./utils"
+
 export enum PostType {
   Text = 1,
   Image = 2,
@@ -17,12 +19,16 @@ export interface PostEntry {
   numComments?: number
   hot?: number
   timeUpdated: number
-  backedUp: boolean
+  timesSaved: number[]
 }
 
 export interface BlogEntry {
   id: number
   username: string
   title: string
-  posts?: Array<PostEntry>
+}
+
+export interface SaveData {
+  blogs?: IDDict<BlogEntry>
+  posts?: IDDict<PostEntry>
 }

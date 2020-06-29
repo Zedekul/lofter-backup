@@ -1,0 +1,75 @@
+.page-main {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+  display: flex;
+}
+
+.page-main > .row {
+  flex: 2 0 100%;
+}
+
+.console-container {
+  display: flex !important;
+  flex-direction: column;
+}
+
+.logging-console {
+  flex: 2 1 100%;
+  font-family: monospace;
+  border: solid 2px gray;
+  overflow-y: scroll;
+  padding: 0.4rem;
+}
+
+.message-info {
+  color: #3D3660;
+}
+
+.message-warning {
+  color: #ff7b00;
+}
+
+.message-error {
+  color: #d90000;
+  font-weight: bold;
+}
+
+.input-username {
+  position: relative;
+}
+
+.input-username > input {
+  text-align: center;
+  padding-right: 9rem !important;
+}
+
+.input-username > span {
+  position: absolute;
+  top: 0;
+  right: 1rem;
+  line-height: 3.8rem;
+}
+
+.input-group {
+  width: 90%;
+  margin: auto;
+}
+
+.input-group button {
+  width: 100%;
+  font-size: 1.6rem;
+}
+
+.console-buttons {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.console-buttons > button {
+  width: 45%;
+  font-size: 1.6rem !important;
+}

@@ -9,8 +9,13 @@ mod actions;
 mod utils;
 
 use async_handler::AppBuilderExt;
+use std::fs;
 
 fn main() {
+  let app_dir = tauri_api::path::app_dir()
+    .expect("There is no app directory.");
+  fs::create_dir_all(app_dir.as_path())
+    .expect(&format!("Cannot create the config directory: {:?}", app_dir));
   tauri::AppBuilder::new()
     .async_handler(|cmd: cmd::Cmd| async {
       use cmd::Cmd::*;
@@ -27,8 +32,8 @@ fn main() {
         DownloadFile { source, filename, referer } => {
           actions::download_file(source, filename, referer).await?
         }
-        Test {} => {
-          actions::test().await?
+        GetUtils { key } => {
+          actions::get_utils(key).await?
         }
       })
     })

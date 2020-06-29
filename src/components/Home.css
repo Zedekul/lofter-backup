@@ -1,0 +1,30 @@
+.page-home {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  text-align: center;
+}
+
+.page-home-inner {
+  width: 70%;
+  display: flex;
+  flex-direction: column;
+  margin: auto;
+}
+
+.home-buttons {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 2rem;
+}
+
+.home-button {
+  margin: auto !important;
+  width: 16rem !important;
+  height: 5rem !important;
+  font-size: 2rem !important;
+}
+
+.home-data-path {
+  display: block;
+}

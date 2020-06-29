@@ -10,6 +10,8 @@ declare global {
 
       promisified<T>(args: object): Promise<T>
 
+      open(url: string): void
+
       setTitle(title: string): void
 
       openDialog(options?: {
@@ -22,10 +24,10 @@ declare global {
         file: string,
         contents: string
       }, options?: {
-        dir?: string
+        dir?: BaseDirectory
       }): Promise<void>
 
-      readTextFile(filePath: string): Promise<string>
+      readTextFile(filePath: string, options?: { dir?: BaseDirectory }): Promise<string>
     }
   }
 }
@@ -33,4 +35,25 @@ declare global {
 export function invoke<T = void>(cmd: string, args: { [key: string]: any } = {}): Promise<T> {
   args.cmd = cmd
   return window.tauri.promisified<T>(args)
+}
+
+export enum BaseDirectory {
+  Audio = 1,
+  Cache = 2,
+  Config = 3,
+  Data = 4,
+  LocalData = 5,
+  Desktop = 6,
+  Document = 7,
+  Download = 8,
+  Executable = 9,
+  Font = 10,
+  Home = 11,
+  Picture = 12,
+  Public = 13,
+  Runtime = 14,
+  Template = 15,
+  Video = 16,
+  Resource = 17,
+  App = 18
 }

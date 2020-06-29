@@ -32,6 +32,9 @@ fn main() {
         DownloadFile { source, filename, referer } => {
           actions::download_file(source, filename, referer).await?
         }
+        SaveBase64 { filename, content } => {
+          actions::save_base64(filename, content).await?
+        }
       })
     })
     .build()

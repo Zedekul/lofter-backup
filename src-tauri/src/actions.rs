@@ -100,3 +100,10 @@ pub async fn download_file(
 
   Ok(json!(filename))
 }
+
+pub async fn save_base64(filename: String, content: String) -> Result<Value> {
+  let mut file = File::create(filename).await?;
+  let content = base64::decode(content)?;
+  file.write_all(&content).await?;
+  Ok(json!(content.len()))
+}

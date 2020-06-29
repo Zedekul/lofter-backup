@@ -24,6 +24,7 @@ export const ByBlog: React.FC<{
     let blog: BlogEntry
     try {
       blog = await invoke<BlogEntry>("getBlogInfo", { username })
+      blog.timeUpdated = +new Date()
       if (data.blogs === undefined) {
         data.blogs = {}
       }

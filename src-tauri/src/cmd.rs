@@ -23,4 +23,8 @@ pub enum Cmd {
     filename: String,
     referer: String,
   },
+  SaveBase64 {
+    content: String,
+    filename: String,
+  },
 }

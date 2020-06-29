@@ -42,7 +42,7 @@
       "all": true
     },
     "window": {
-      "title": "Tauri App",
+      "title": "Lofter 备份工具",
       "width": 800,
       "height": 600,
       "resizable": true,

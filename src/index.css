@@ -46,3 +46,7 @@ button {
   text-align: center;
   color: #3D3660;
 }
+
+.hidden-object {
+  display: none !important;
+}

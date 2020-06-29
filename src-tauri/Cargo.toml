@@ -1,11 +1,11 @@
 [package]
-name = "app"
-version = "0.1.0"
-description = "A Tauri App"
+name = "lofter-backup"
+version = "1.0.0"
+description = "Back up posts from Lofter blogs."
 authors = [ "Zedekul" ]
-license = ""
-repository = ""
-default-run = "app"
+license = "MIT"
+repository = "https://github.com/Zedekul/lofter-backup"
+default-run = "lofter-backup"
 edition = "2018"
 build = "src/build.rs"
 
@@ -21,6 +21,7 @@ futures = "0.3"
 anyhow = "1.0"
 futures-channel = { version = "0.3", default-features = false }
 futures-util = { version = "0.3", default-features = false }
+base64 = "0.12"
 
 [target."cfg(windows)".build-dependencies]
 winres = "0.1"
@@ -30,5 +31,5 @@ embedded-server = [ "tauri/embedded-server" ]
 no-server = [ "tauri/no-server" ]
 
 [[bin]]
-name = "app"
+name = "lofter-backup"
 path = "src/main.rs"

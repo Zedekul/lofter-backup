@@ -1,6 +1,6 @@
 import { BlogEntry, PostEntry, PostType } from "./models"
 import { contextData } from "./context"
-import { escapeSpecials, saveData, showPostType } from "./utils"
+import { escapeSpecials, saveData, showPostType, tryMatch } from "./utils"
 import { invoke } from "./tauri"
 import { parse as parseHTML, HTMLElement } from "node-html-parser"
 
@@ -14,7 +14,7 @@ export interface BackupOptions {
 
 const getBlogDirectory = (blog: BlogEntry, dataPath: string) => `${ dataPath }/${ blog.id }-${ blog.username }`
 
-const getPostUrl = (post: PostEntry, blog: BlogEntry) => `https://${
+export const getPostUrl = (post: PostEntry, blog: BlogEntry) => `https://${
   blog.username }.lofter.com/post/${ blog.id.toString(16) }_${ post.id.toString(16) }`
 
 export const handleMedia = async (
@@ -88,9 +88,6 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
       toSave = await handleMedia("video", video, blog, referer, toSave, options)
     }
   }
-  const m2 = rawHTML.match(/creativecommons.org\/licenses\/(.+?)\//)
-  post.license = m2 === null ? undefined : m2[1]
-  post.tags = dom.querySelectorAll(".tag").map((x) => x.text)
 
   const filename = `${ dataPath }/${ blog.id }-${ blog.username }/${ post.id }-${ escapeSpecials(post.title) }${
     post.timesSaved.length === 1 ? "" : `-${ post.timesSaved.length }`
@@ -105,6 +102,13 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
 <body>${ toSave }</body>
 </html>`
   })
+
+  post.license = tryMatch(/creativecommons.org\/licenses\/(.+?)\//, rawHTML)
+  post.tags = dom.querySelectorAll(".tag").map((x) => x.text)
+  const numComments = tryMatch(/评论\((\d+?)\)/, rawHTML)
+  post.numComments = numComments === undefined ? undefined : parseInt(numComments)
+  const hot = tryMatch(/热度\((\d+?)\)/, rawHTML)
+  post.hot = hot === undefined ? undefined : parseInt(hot)
 
   post.timesSaved.push(+new Date())
   await saveData({ posts: contextData.data.posts }, dataPath)

@@ -82,3 +82,8 @@ export const escapeSpecials = (str: string, inPath = true) => {
   str = str.replace(_pathEscaper, "")
   return inPath ? str : str.replace(/\$\/\$\/\$/g, "\n")
 }
+
+export const tryMatch = (re: RegExp, str: string): string | undefined => {
+  const m = str.match(re)
+  return m === null ? undefined : m[1]
+}

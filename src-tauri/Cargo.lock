@@ -22,24 +22,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85bb70cc08ec97ca5450e6eba421deeea5f172c0fc61f78b5357b2a8e8be195f"
 
 [[package]]
-name = "app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-std",
- "futures",
- "futures-channel",
- "futures-util",
- "regex",
- "reqwest",
- "serde",
- "serde_json",
- "tauri",
- "tauri-api",
- "winres",
-]
-
-[[package]]
 name = "arrayref"
 version = "0.3.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -845,6 +827,25 @@ name = "libc"
 version = "0.2.71"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9457b06509d27052635f90d6466700c65095fdf75409b3fbdd903e988b886f49"
+
+[[package]]
+name = "lofter-backup"
+version = "1.0.0"
+dependencies = [
+ "anyhow",
+ "async-std",
+ "base64 0.12.1",
+ "futures",
+ "futures-channel",
+ "futures-util",
+ "regex",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-api",
+ "winres",
+]
 
 [[package]]
 name = "log"

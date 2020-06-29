@@ -31,7 +31,7 @@ export const logToElement = (
       break
   }
   if (updateLast && consoleElement.lastElementChild !== null) {
-    consoleElement.removeChild(consoleElement.lastElementChild)
+    consoleElement.lastElementChild.classList.add("hidden-object")
   }
   consoleElement.appendChild(entry)
   consoleElement.scrollTo(0, consoleElement.scrollHeight)

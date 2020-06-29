@@ -1,0 +1,58 @@
+on: [push, pull_request]
+
+name: CI
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-20.04
+          - os: macOS-10.15
+          - os: windows-2019
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache Cargo bin
+        uses: actions/cache@v1
+        with:
+          path: ~/.cargo/bin/
+          key: ${{ matrix.os }}-stable-cargo-bin
+      - name: Cache Cargo build
+        uses: actions/cache@v1
+        with:
+          path: src-tauri/target/
+          key: ${{ matrix.os }}-stable-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}-stable-target-
+      - name: Cache node_modules
+        uses: actions/cache@v1
+        with:
+          path: node_modules/
+          key: ${{ matrix.os }}-stable-node_modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}-stable-node_modules-
+      - name: Install webkit2gtk (Ubuntu only)
+        if: matrix.os == 'ubuntu-20.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y webkit2gtk-4.0
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - run: cargo install tauri-bundler --force
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - run: yarn
+      - run: yarn build
+      - run: yarn tauri build
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '10.14'
+      - uses: actions/upload-artifact@v1
+        with:
+          name: lofter-backup-(${{ matrix.os }})
+          path: ./src-tauri/target/release/bundle

@@ -26,6 +26,7 @@ export interface BlogEntry {
   id: number
   username: string
   title: string
+  timeUpdated: number
 }
 
 export interface SaveData {

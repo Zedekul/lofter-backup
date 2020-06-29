@@ -62,13 +62,11 @@ const Index: React.FC = () => {
     </div>
     <div className="app-footer">
       <a href="https://github.com/Zedekul/lofter-backup" target="_blank" rel="noreferrer">lofter-backup</a>
-      <span> | Copyright (c) 2020: Zedekul (</span>
+      <span> v1.0 | Copyright (c) 2020: Zedekul (</span>
       <a href="mailto:zedekul@pm.me" target="_blank" rel="noreferrer">zedekul@pm.me</a>)
     </div>
   </div>
 }
-
-window.tauri.setTitle("Lofter 备份工具")
 
 render(<Router>
   <Index/>

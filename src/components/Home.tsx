@@ -11,7 +11,7 @@ export const Home: React.FC = () => {
   const [dataPath, setDataPath] = useGlobalState("dataPath")
   const history = useHistory()
 
-  const canStart = initialized && dataPath !== undefined
+  const canStart = initialized && dataPath !== ""
 
   const navClick = (link: string) => () => {
     if (canStart) {

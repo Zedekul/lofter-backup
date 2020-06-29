@@ -11,8 +11,12 @@ export const Backup: React.FC = () => {
   const [isWorking, setIsWorking] = useGlobalState("isWorking")
   const [backupType, setBackupType] = useState<BackupType>("blog")
   const [posts, setPostsInner] = useState<PostEntry[] | null>(null)
-  const [skipRepeated, setSkipRepeated] = useState(true)
-  const [allowFailure, setAllowFailure] = useState(true)
+  const [backupOptions, setBackupOptions] = useState({
+    skipRepeated: true,
+    allowFailure: true,
+    skipImages: false,
+    skipVideos: false
+  })
 
   const log = contextData.log
 
@@ -47,7 +51,7 @@ export const Backup: React.FC = () => {
       return
     }
     setIsWorking(true)
-    if (await backupPosts(posts, { skipRepeated, allowFailure, dataPath })) {
+    if (await backupPosts(posts, { ...backupOptions, dataPath })) {
       log(`详情可在<a href="#/saved">【已保存的数据】</a>页面查看。`)
     }
     setIsWorking(false)
@@ -72,16 +76,36 @@ export const Backup: React.FC = () => {
     })() }
     { posts !== null && posts.length > 0 ? <>
       <div className="input-group">
-        <input type="checkbox" id="skipRepeated" checked={ skipRepeated }
+        <input type="checkbox" id="skipRepeated" checked={ backupOptions.skipRepeated }
                disabled={ isWorking }
-               onChange={ (e) => setSkipRepeated(e.currentTarget.checked) }/>
+               onChange={ (e) => setBackupOptions({
+                 ...backupOptions, skipRepeated: e.currentTarget.checked
+               }) }/>
         <label className="label-inline" htmlFor="skipRepeated">跳过已备份文章</label>
       </div>
       <div className="input-group">
-        <input type="checkbox" id="allowFailure" checked={ allowFailure }
+        <input type="checkbox" id="allowFailure" checked={ backupOptions.allowFailure }
                disabled={ isWorking }
-               onChange={ (e) => setAllowFailure(e.currentTarget.checked) }/>
+               onChange={ (e) => setBackupOptions({
+                 ...backupOptions, allowFailure: e.currentTarget.checked
+               }) }/>
         <label className="label-inline" htmlFor="allowFailure">忽略错误。</label>
+      </div>
+      <div className="input-group">
+        <input type="checkbox" id="skipImages" checked={ backupOptions.skipImages }
+               disabled={ isWorking }
+               onChange={ (e) => setBackupOptions({
+                 ...backupOptions, skipImages: e.currentTarget.checked
+               }) }/>
+        <label className="label-inline" htmlFor="skipImages">不备份图片</label>
+      </div>
+      <div className="input-group">
+        <input type="checkbox" id="skipVideos" checked={ backupOptions.skipVideos }
+               disabled={ isWorking }
+               onChange={ (e) => setBackupOptions({
+                 ...backupOptions, skipVideos: e.currentTarget.checked
+               }) }/>
+        <label className="label-inline" htmlFor="skipVideos">不备份视频</label>
       </div>
       <div className="input-group">
         <button className="button" disabled={ isWorking } onClick={ onStart }>开始备份</button>

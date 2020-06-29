@@ -7,6 +7,8 @@ import { parse as parseHTML, HTMLElement } from "node-html-parser"
 export interface BackupOptions {
   allowFailure: boolean
   skipRepeated: boolean
+  skipImages: boolean
+  skipVideos: boolean
   dataPath: string
 }
 
@@ -67,20 +69,24 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
   const images = picDoms
     .map((x) => x.querySelector("img"))
     .filter((x) => x !== null)
-  let i = 0
-  for (const image of images) {
-    i += 1
-    log(`${ infoString } 备份中……下载图片（${ i }/${ images.length }）`, "info", true)
-    toSave = await handleMedia("image", image, blog, referer, toSave, options)
+  if (!options.skipImages) {
+    let i = 0
+    for (const image of images) {
+      i += 1
+      log(`${ infoString } 备份中……下载图片（${ i }/${ images.length }）`, "info", true)
+      toSave = await handleMedia("image", image, blog, referer, toSave, options)
+    }
   }
   const videos = picDoms
     .map((x) => x.querySelector("video"))
     .filter((x) => x !== null)
-  i = 0
-  for (const video of videos) {
-    i += 1
-    log(`${ infoString } 备份中……下载视频${ i }/${ videos.length }）`, "info", true)
-    toSave = await handleMedia("video", video, blog, referer, toSave, options)
+  if (!options.skipVideos) {
+    let i = 0
+    for (const video of videos) {
+      i += 1
+      log(`${ infoString } 备份中……下载视频${ i }/${ videos.length }）`, "info", true)
+      toSave = await handleMedia("video", video, blog, referer, toSave, options)
+    }
   }
   const m2 = rawHTML.match(/creativecommons.org\/licenses\/(.+?)\//)
   post.license = m2 === null ? undefined : m2[1]
@@ -91,7 +97,7 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
   }.html`
   await window.tauri.writeFile({
     file: filename,
-    contents: `<html>
+    contents: `<html lang="zh">
 <head>
 <meta charset="utf-8">
 <title>${ title }</title>
@@ -102,19 +108,16 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
 
   post.timesSaved.push(+new Date())
   await saveData({ posts: contextData.data.posts }, dataPath)
-  log(`${ infoString } 完成备份。`, "success", true)
+  let skipped = options.skipImages && images.length > 0 ? `${ images.length } 张图片` : ""
+  skipped += options.skipVideos && videos.length > 0 ? `${
+    skipped.length > 0 ? "和 " : ""
+  }${ videos.length } 个视频` : ""
+  log(`${ infoString } 完成备份。${
+    skipped.length > 0 ? `跳过了 ${ skipped }。` : ""
+  }`, "success", true)
 }
 
-export const backupPosts = async (posts: PostEntry[], options: {
-  skipRepeated?: boolean,
-  allowFailure?: boolean,
-  dataPath: string
-}): Promise<boolean> => {
-  const backupOptions = {
-    allowFailure: options.allowFailure === undefined ? true : options.allowFailure,
-    skipRepeated: options.skipRepeated === undefined ? true : options.skipRepeated,
-    dataPath: options.dataPath
-  }
+export const backupPosts = async (posts: PostEntry[], options: BackupOptions): Promise<boolean> => {
   const { data, log } = contextData
   if (data === undefined || data.blogs === undefined) {
     log("没有数据信息", "error")
@@ -139,7 +142,7 @@ export const backupPosts = async (posts: PostEntry[], options: {
       case PostType.Video:
         log(`${ infoString } 开始备份……`)
         try {
-          await backupCommonPost(post, blog, infoString, backupOptions)
+          await backupCommonPost(post, blog, infoString, options)
         } catch (e) {
           log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, "warning", true)
           if (!options.allowFailure) {

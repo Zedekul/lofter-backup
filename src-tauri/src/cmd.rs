@@ -23,7 +23,4 @@ pub enum Cmd {
     filename: String,
     referer: String,
   },
-  GetUtils {
-    key: String
-  },
 }

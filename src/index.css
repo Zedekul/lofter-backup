@@ -31,6 +31,7 @@ button {
 }
 
 .app-header > a {
+  color: #55167a !important;
   margin-right: 1.6rem;
 }
 

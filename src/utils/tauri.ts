@@ -18,6 +18,10 @@ declare global {
         filter?: string, defaultPath?: string, multiple?: boolean, directory?: boolean
       }): Promise<string | string[]>
 
+      saveDialog(options?: {
+        filter?: string, defaultPath?: string
+      }): Promise<string>
+
       createDir(dir: string, options?: { recursive: boolean }): Promise<void>
 
       writeFile(file: {

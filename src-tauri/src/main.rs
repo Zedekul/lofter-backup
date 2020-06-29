@@ -32,9 +32,6 @@ fn main() {
         DownloadFile { source, filename, referer } => {
           actions::download_file(source, filename, referer).await?
         }
-        GetUtils { key } => {
-          actions::get_utils(key).await?
-        }
       })
     })
     .build()

@@ -9,7 +9,6 @@ use crate::utils;
 
 use async_std::fs::File;
 use async_std::prelude::*;
-use tauri_api::path::app_dir;
 
 pub async fn get_blog_info(username: String) -> Result<Value> {
   let base_url = format!("https://{}.lofter.com", username);
@@ -100,13 +99,4 @@ pub async fn download_file(
   }
 
   Ok(json!(filename))
-}
-
-pub async fn get_utils(key: String) -> Result<Value> {
-  let value = match key.as_str() {
-    "appDir" => app_dir().expect("No app directory")
-      .into_os_string().into_string().unwrap(),
-    _ => "".to_string()
-  };
-  Ok(json!(value))
 }

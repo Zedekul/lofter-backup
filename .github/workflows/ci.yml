@@ -52,9 +52,9 @@ jobs:
           test -e ./src-tauri/target/release/lofter-backup && mv ./src-tauri/target/release/lofter-backup ./build
           test -e ./src-tauri/target/release/bundle && mv ./src-tauri/target/release/bundle ./build
           test -e ./src-tauri/target/release/lofter-backup.x64.msi && \
-            mv ./src-tauri/target/release/lofter-backup.x64.msi ./build && \
-            mv ./src-tauri/target/release/lofter-backup.exe ./build
-          true
+            mv ./src-tauri/target/release/lofter-backup.x64.msi ./build
+          mv ./src-tauri/target/release/*.exe ./build || \
+            true
         shell: bash
       - uses: actions/upload-artifact@v1
         with:

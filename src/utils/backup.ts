@@ -67,7 +67,7 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
   await window.tauri.createDir(`${ getBlogDirectory(blog, dataPath) }/images`, { recursive: true })
   await window.tauri.createDir(`${ getBlogDirectory(blog, dataPath) }/videos`, { recursive: true })
   let toSave = content.innerHTML
-  const picDoms = dom.querySelectorAll(".pic")
+  const picDoms = dom.querySelectorAll(".pic .imgclasstag")
   const referer = getPostUrl(post, blog)
   const images = picDoms
     .map((x) => x.querySelector("img"))

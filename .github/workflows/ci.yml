@@ -38,7 +38,7 @@ jobs:
         with:
           toolchain: stable
           override: true
-      - run: cargo install tauri-bundler --force
+      - run: cargo install tauri-bundler --force --vers ^0.6
       - uses: actions/setup-node@v2-beta
         with:
           node-version: '12'
@@ -49,12 +49,10 @@ jobs:
       - name: After build
         run: |
           mkdir -p ./build
-          test -e ./src-tauri/target/release/lofter-backup && mv ./src-tauri/target/release/lofter-backup ./build
-          test -e ./src-tauri/target/release/bundle && mv ./src-tauri/target/release/bundle ./build
-          test -e ./src-tauri/target/release/lofter-backup.x64.msi && \
-            mv ./src-tauri/target/release/lofter-backup.x64.msi ./build
-          mv ./src-tauri/target/release/*.exe ./build || \
-            true
+          mv ./src-tauri/target/release/lofter-backup ./build || true
+          mv ./src-tauri/target/release/*.msi ./build || true
+          mv ./src-tauri/target/release/*.exe ./build || true
+          mv ./src-tauri/target/release/bundle ./build || true
         shell: bash
       - uses: actions/upload-artifact@v1
         with:

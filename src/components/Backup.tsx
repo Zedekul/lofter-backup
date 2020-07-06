@@ -9,6 +9,7 @@ import { backupPosts } from "../utils/backup"
 export const Backup: React.FC = () => {
   const [dataPath] = useGlobalState("dataPath")
   const [isWorking, setIsWorking] = useGlobalState("isWorking")
+  const [isCancelling, setIsCancelling] = useGlobalState("isCancelling")
   const [backupType, setBackupType] = useState<BackupType>("blog")
   const [posts, setPostsInner] = useState<PostEntry[] | null>(null)
   const [backupOptions, setBackupOptions] = useState({
@@ -51,11 +52,25 @@ export const Backup: React.FC = () => {
       return
     }
     setIsWorking(true)
-    const options = Object.assign({dataPath}, backupOptions)
-    if (await backupPosts(posts, options)) {
+    const options = Object.assign({ dataPath }, backupOptions)
+    try {
+      await backupPosts(posts, options)
       log(`详情可在<a href="#/saved">【已保存的数据】</a>页面查看。`)
+    } catch (e) {
+      if (e.isJobCancellation) {
+        log(`已中止备份。`)
+      }
+      setIsCancelling(false)
+      contextData.isCancelling = false
     }
     setIsWorking(false)
+  }
+
+  const onCancel = async () => {
+    if (isWorking) {
+      setIsCancelling(true)
+      contextData.isCancelling = true
+    }
   }
 
   if (backupType === null) {
@@ -107,7 +122,9 @@ export const Backup: React.FC = () => {
         <label className="label-inline" htmlFor="skipVideos">不备份视频</label>
       </div>
       <div className="input-group">
-        <button className="button" disabled={ isWorking } onClick={ onStart }>开始备份</button>
+        <button className="button" disabled={ isCancelling } onClick={ isWorking ? onCancel : onStart }>{
+          isWorking ? "停止备份" : "开始备份"
+        }</button>
       </div>
     </> : undefined }
   </>

@@ -5,6 +5,7 @@
     "jsx": "react",
     "strict": true,
     "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "downlevelIteration": true
   }
 }

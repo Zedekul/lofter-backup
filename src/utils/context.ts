@@ -7,15 +7,18 @@ export const contextData: {
   data: SaveData,
   log: Logger,
   previousLogs: string
+  isCancelling: boolean
 } = {
   data: {},
   log: (message: string, level = null, updateLast = false) => {
   },
-  previousLogs: ""
+  previousLogs: "",
+  isCancelling: false
 }
 
 export const { useGlobalState } = createGlobalState({
   dataPath: "",
   initialized: false,
-  isWorking: false
+  isWorking: false,
+  isCancelling: false
 })

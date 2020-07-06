@@ -143,7 +143,11 @@ export const Saved: React.FC = () => {
       console.log(`Exported to ${ filename }`)
     } catch (e) {
       setFilename("")
-      setError(e.toString())
+      let message = e.toString()
+      if (message.indexOf("user cancelled") >= 0) {
+        message = ""
+      }
+      setError(message)
       console.error(e)
     }
     setIsWorking(false)
@@ -156,12 +160,16 @@ export const Saved: React.FC = () => {
       </button>
       <div className={ `saved-message${ error === "" ? "" : " saved-message-error" }` }>{
         error === "" ? filename === "" ?
-          "请使用 Excel 来管理备份的数据。" : <span>成功导出到 <a href="#" onClick={ (e) => {
+          "请使用 Excel 来管理备份的数据。" : <span>成功导出到：<a href="#" onClick={ (e) => {
             e.preventDefault()
             window.tauri.open(filename)
-          } }>{ filename }</a>。</span> :
+          } }>{ filename }</a></span> :
           error
       }</div>
+      <div className="saved-folder">打开数据目录：<a href="#" onClick={ (e) => {
+        e.preventDefault()
+        window.tauri.open(dataPath)
+      } }> { dataPath }</a></div>
     </div>
   </div>
 }

@@ -2,7 +2,7 @@ import { BlogEntry, PostEntry, PostType } from "./models"
 import { contextData } from "./context"
 import { escapeSpecials, saveData, showPostType, tryMatch } from "./utils"
 import { invoke } from "./tauri"
-import { parse as parseHTML, HTMLElement } from "node-html-parser"
+import { parse as parseHTML } from "node-html-parser"
 
 export interface BackupOptions {
   allowFailure: boolean
@@ -18,11 +18,10 @@ export const getPostUrl = (post: PostEntry, blog: BlogEntry) => `https://${
   blog.username }.lofter.com/post/${ blog.id.toString(16) }_${ post.id.toString(16) }`
 
 export const handleMedia = async (
-  mediaType: "image" | "video", media: HTMLElement,
+  mediaType: "image" | "video", source: string,
   blog: BlogEntry, referer: string, toSave: string,
   options: BackupOptions
 ): Promise<string> => {
-  const source = media.getAttribute("src")
   if (source === null) {
     return toSave
   }
@@ -42,9 +41,25 @@ export const handleMedia = async (
   return toSave
 }
 
+export class JobCancellation extends Error {
+  public isJobCancellation = true
+
+  constructor() {
+    super("Job cancelled.")
+    Object.setPrototypeOf(this, new.target.prototype)
+  }
+}
+
+const checkCancelJob = () => {
+  if (contextData.isCancelling) {
+    throw new JobCancellation()
+  }
+}
+
 export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoString: string, options: BackupOptions) => {
   const log = contextData.log
   const dataPath = options.dataPath
+  checkCancelJob()
   if (post.timesSaved.length > 0 && options.skipRepeated) {
     log(`${ infoString } 已备份，跳过。`, "success", true)
     return
@@ -67,30 +82,34 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
   await window.tauri.createDir(`${ getBlogDirectory(blog, dataPath) }/images`, { recursive: true })
   await window.tauri.createDir(`${ getBlogDirectory(blog, dataPath) }/videos`, { recursive: true })
   let toSave = content.innerHTML
-  const picDoms = dom.querySelectorAll(".pic .imgclasstag")
   const referer = getPostUrl(post, blog)
-  const images = picDoms
-    .map((x) => x.querySelector("img"))
-    .filter((x) => x !== null)
+  const images = new Set(content
+    .querySelectorAll("img")
+    .map((x) => x.getAttribute("src"))
+    .filter((x) => x !== undefined)) as Set<string>
   if (!options.skipImages) {
     let i = 0
     for (const image of images) {
+      checkCancelJob()
       i += 1
-      log(`${ infoString } 备份中……下载图片（${ i }/${ images.length }）`, "info", true)
+      log(`${ infoString } 备份中……下载图片（${ i }/${ images.size }）`, "info", true)
       toSave = await handleMedia("image", image, blog, referer, toSave, options)
     }
   }
-  const videos = picDoms
-    .map((x) => x.querySelector("video"))
-    .filter((x) => x !== null)
+  const videos = new Set(content
+    .querySelectorAll("video")
+    .map((x) => x.getAttribute("src"))
+    .filter((x) => x !== undefined)) as Set<string>
   if (!options.skipVideos) {
     let i = 0
     for (const video of videos) {
+      checkCancelJob()
       i += 1
-      log(`${ infoString } 备份中……下载视频${ i }/${ videos.length }）`, "info", true)
+      log(`${ infoString } 备份中……下载视频${ i }/${ videos.size }）`, "info", true)
       toSave = await handleMedia("video", video, blog, referer, toSave, options)
     }
   }
+  checkCancelJob()
 
   const filename = `${ dataPath }/${ blog.id }-${ blog.username }/${ post.id }-${ escapeSpecials(post.title) }${
     post.timesSaved.length === 1 ? "" : `-${ post.timesSaved.length }`
@@ -115,26 +134,27 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
 
   post.timesSaved.push(+new Date())
   await saveData({ posts: contextData.data.posts }, dataPath)
-  let skipped = options.skipImages && images.length > 0 ? `${ images.length } 张图片` : ""
-  skipped += options.skipVideos && videos.length > 0 ? `${
+  let skipped = options.skipImages && images.size > 0 ? `${ images.size } 张图片` : ""
+  skipped += options.skipVideos && videos.size > 0 ? `${
     skipped.length > 0 ? "和 " : ""
-  }${ videos.length } 个视频` : ""
+  }${ videos.size } 个视频` : ""
   log(`${ infoString } 完成备份。${
     skipped.length > 0 ? `跳过了 ${ skipped }。` : ""
   }`, "success", true)
 }
 
-export const backupPosts = async (posts: PostEntry[], options: BackupOptions): Promise<boolean> => {
+export const backupPosts = async (posts: PostEntry[], options: BackupOptions) => {
   const { data, log } = contextData
   if (data === undefined || data.blogs === undefined) {
     log("没有数据信息", "error")
-    return false
+    return
   }
   const n = posts.length
   let succeeded = 0
   let i = 0
-  let failed = false
+  let err: Error | null = null
   for (const post of posts) {
+    checkCancelJob()
     i += 1
     const blog = data.blogs[post.blogID]
     if (blog === undefined) {
@@ -151,9 +171,13 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions): P
         try {
           await backupCommonPost(post, blog, infoString, options)
         } catch (e) {
+          if (e.isJobCancellation) {
+            err = e
+            break
+          }
           log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, options.allowFailure ? "warning" : "error", true)
           if (!options.allowFailure) {
-            failed = true
+            err = e
             break
           }
           continue
@@ -166,6 +190,8 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions): P
         continue
     }
   }
-  log(`备份${ failed ? "失败" : "完成" }！共备份了 ${ n } 中的 ${ succeeded } 篇内容。`)
-  return !failed
+  log(`备份${ err === null ? "完成" : "失败" }！共备份了 ${ n } 中的 ${ succeeded } 篇内容。`)
+  if (err !== null) {
+    throw err
+  }
 }

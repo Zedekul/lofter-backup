@@ -76,6 +76,7 @@ export const ByBlog: React.FC<{
       setIsWorking(false)
       return
     }
+    posts.sort((a, b) => a.timeCreated - b.timeCreated)
 
     setLocalPosts(posts)
     setPreparedUsername(username.toLowerCase())

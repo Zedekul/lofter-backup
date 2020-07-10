@@ -181,7 +181,6 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions) =>
             shouldStop = true
             continue
           }
-          (window as any).error = e
           log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, options.allowFailure ? "warning" : "error", true)
           if (!options.allowFailure) {
             err = e

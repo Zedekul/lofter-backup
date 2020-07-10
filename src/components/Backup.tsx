@@ -107,7 +107,7 @@ export const Backup: React.FC = () => {
         <input type="checkbox" id="allowFailure" checked={ backupOptions.allowFailure }
                disabled={ isWorking }
                onChange={ changeOptions("allowFailure") }/>
-        <label className="label-inline" htmlFor="allowFailure">忽略错误。</label>
+        <label className="label-inline" htmlFor="allowFailure">忽略错误</label>
       </div>
       <div className="input-group">
         <input type="checkbox" id="skipImages" checked={ backupOptions.skipImages }

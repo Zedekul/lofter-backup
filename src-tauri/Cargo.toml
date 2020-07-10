@@ -1,6 +1,6 @@
 [package]
 name = "lofter-backup"
-version = "1.0.0"
+version = "1.0.1"
 description = "Back up posts from Lofter blogs."
 authors = [ "Zedekul" ]
 license = "MIT"

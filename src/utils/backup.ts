@@ -153,7 +153,12 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions) =>
   let succeeded = 0
   let i = 0
   let err: Error | null = null
+  let shouldStop = false
   for (const post of posts) {
+    if (shouldStop) {
+      break
+    }
+    shouldStop = false
     checkCancelJob()
     i += 1
     const blog = data.blogs[post.blogID]
@@ -173,12 +178,14 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions) =>
         } catch (e) {
           if (e.isJobCancellation) {
             err = e
-            break
+            shouldStop = true
+            continue
           }
+          (window as any).error = e
           log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, options.allowFailure ? "warning" : "error", true)
           if (!options.allowFailure) {
             err = e
-            break
+            shouldStop = true
           }
           continue
         }

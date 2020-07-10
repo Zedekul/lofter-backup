@@ -13,6 +13,7 @@ jobs:
           - os: macOS-10.15
           - os: windows-2019
 
+    if: "!contains(github.event.head_commit.message, 'debug mac')"
     steps:
       - uses: actions/checkout@v2
       - name: Cache Cargo build
@@ -49,15 +50,64 @@ jobs:
       - name: After build
         run: |
           mkdir -p ./build
-          mv ./src-tauri/target/release/lofter-backup ./build || true
-          mv ./src-tauri/target/release/*.msi ./build || true
-          mv ./src-tauri/target/release/*.exe ./build || true
-          mv ./src-tauri/target/release/bundle/**/*.AppImage ./build || true
-          mv ./src-tauri/target/release/bundle/**/*.deb ./build || true
-          mv ./src-tauri/target/release/bundle/**/*.dmg ./build || true
-          mv ./src-tauri/target/release/bundle/**/*.app ./build || true
+          mv ./src-tauri/target/release/lofter-backup ./build/ || true
+          mv ./src-tauri/target/release/*.msi ./build/ || true
+          mv ./src-tauri/target/release/*.exe ./build/ || true
+          mv ./src-tauri/target/release/bundle/**/*.AppImage ./build/ || true
+          mv ./src-tauri/target/release/bundle/**/*.deb ./build/ || true
+          mv ./src-tauri/target/release/bundle/**/*.dmg ./build/ || true
+          mv ./src-tauri/target/release/bundle/**/*.app ./build/ || true
         shell: bash
       - uses: actions/upload-artifact@v1
         with:
           name: lofter-backup-(${{ matrix.os }})
+          path: ./build
+
+  build-debug-mac:
+    name: Debugging build on Mac
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macOS-10.15
+
+    if: "contains(github.event.head_commit.message, 'debug mac')"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache Cargo build
+        uses: actions/cache@v1
+        with:
+          path: src-tauri/target/
+          key: ${{ matrix.os }}-stable-target-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}-stable-target-
+      - name: Cache node_modules
+        uses: actions/cache@v1
+        with:
+          path: node_modules/
+          key: ${{ matrix.os }}-stable-node_modules-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ matrix.os }}-stable-node_modules-
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+      - run: cargo install tauri-bundler --force --vers ^0.6
+      - uses: actions/setup-node@v2-beta
+        with:
+          node-version: '12'
+      - run: yarn
+      - run: yarn build-debug
+        env:
+          MACOSX_DEPLOYMENT_TARGET: '10.14'
+      - name: After build
+        run: |
+          mkdir -p ./build/
+          mv ./src-tauri/target/debug/lofter-backup ./build/ || true
+          mv ./src-tauri/target/debug/bundle/**/*.dmg ./build/ || true
+          mv ./src-tauri/target/debug/bundle/**/*.app ./build/ || true
+        shell: bash
+      - uses: actions/upload-artifact@v1
+        with:
+          name: lofter-backup-(${{ matrix.os }})-debug
           path: ./build

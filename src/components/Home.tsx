@@ -1,10 +1,11 @@
 import React from "react"
 import { useHistory } from "react-router-dom"
 
-import { useGlobalState } from "../utils/context"
+import { contextData, useGlobalState } from "../utils/context"
 import { saveConfig } from "../utils/config"
 
 import "./Home.css"
+import { loadData } from "../utils/utils"
 
 export const Home: React.FC = () => {
   const [initialized] = useGlobalState("initialized")
@@ -29,6 +30,7 @@ export const Home: React.FC = () => {
       })
       const newDataPath = typeof tmp === "string" ? tmp : tmp[0]
       await saveConfig({ dataPath: newDataPath })
+      contextData.data = await loadData(newDataPath)
       setDataPath(newDataPath)
     } catch (e) {
       console.warn(e)

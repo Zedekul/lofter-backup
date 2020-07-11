@@ -1,6 +1,6 @@
 import { BlogEntry, PostEntry, PostType } from "./models"
 import { contextData } from "./context"
-import { escapeSpecials, saveData, showPostType, tryMatch } from "./utils"
+import { escapeSpecials, saveData, showPostType, showTime, tryMatch } from "./utils"
 import { invoke } from "./tauri"
 import { parse as parseHTML } from "node-html-parser"
 
@@ -184,6 +184,11 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions) =>
           log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, options.allowFailure ? "warning" : "error", true)
           if (!options.allowFailure) {
             err = e
+            const filename = `${ options.dataPath }/error-${ showTime(new Date(), true) }.txt`
+            await window.tauri.writeFile({
+              file: filename,
+              contents: `${ err?.name }\n${ err?.message }\n${ err?.stack }`
+            })
             shouldStop = true
           }
           continue

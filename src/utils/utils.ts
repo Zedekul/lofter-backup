@@ -87,3 +87,5 @@ export const tryMatch = (re: RegExp, str: string): string | undefined => {
   const m = str.match(re)
   return m === null ? undefined : m[1]
 }
+
+export const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))

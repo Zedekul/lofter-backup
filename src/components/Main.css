@@ -60,6 +60,10 @@
   font-size: 1.6rem;
 }
 
+.input-number-inline {
+  width: 140px !important;
+}
+
 .console-buttons {
   flex: 1 0 auto;
   display: flex;

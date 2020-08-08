@@ -1,5 +1,5 @@
 import { ByBlog } from "./ByBlog"
-import React, { ChangeEvent, useState } from "react"
+import React, { useState } from "react"
 import { BackupNames, BackupType } from "./Main"
 import { contextData, useGlobalState } from "../utils/context"
 import { PostEntry } from "../utils/models"
@@ -16,7 +16,9 @@ export const Backup: React.FC = () => {
     skipRepeated: true,
     allowFailure: true,
     skipImages: false,
-    skipVideos: false
+    skipVideos: false,
+    fromLatest: false,
+    autoRetry: 3
   })
 
   const log = contextData.log
@@ -77,10 +79,14 @@ export const Backup: React.FC = () => {
     setBackupType("blog")
   }
 
-  const changeOptions = (key: keyof typeof backupOptions) =>
-    (e: ChangeEvent<HTMLInputElement>) => setBackupOptions(Object.assign(backupOptions, {
-      [key]: e.currentTarget.checked
-    }))
+  const inputGroup = (key: keyof typeof backupOptions, label: string) => <div className="input-group">
+    <input type="checkbox" id={ key } checked={ backupOptions[key] as boolean }
+           disabled={ isWorking }
+           onChange={ (e) => setBackupOptions(Object.assign(backupOptions, {
+             [key]: e.currentTarget.checked
+           })) }/>
+    <label className="label-inline" htmlFor={ key }>{ label }</label>
+  </div>
 
   return <>
     <div className="input-group">
@@ -97,29 +103,20 @@ export const Backup: React.FC = () => {
       }
     })() }
     { posts !== null && posts.length > 0 ? <>
+      { inputGroup("skipRepeated", "跳过已备份文章") }
+      { inputGroup("allowFailure", "忽略错误") }
+      { inputGroup("skipImages", "不备份图片") }
+      { inputGroup("skipVideos", "不备份视频") }
+      { inputGroup("fromLatest", "从最新的内容开始") }
       <div className="input-group">
-        <input type="checkbox" id="skipRepeated" checked={ backupOptions.skipRepeated }
+        <label className="label-inline" htmlFor="autoRetry">自动重试次数：</label>
+        <input type="number" id="autoRetry" className="input-number-inline"
+               min={ 0 } max={ 99 }
+               value={ backupOptions.autoRetry }
                disabled={ isWorking }
-               onChange={ changeOptions("skipRepeated") }/>
-        <label className="label-inline" htmlFor="skipRepeated">跳过已备份文章</label>
-      </div>
-      <div className="input-group">
-        <input type="checkbox" id="allowFailure" checked={ backupOptions.allowFailure }
-               disabled={ isWorking }
-               onChange={ changeOptions("allowFailure") }/>
-        <label className="label-inline" htmlFor="allowFailure">忽略错误</label>
-      </div>
-      <div className="input-group">
-        <input type="checkbox" id="skipImages" checked={ backupOptions.skipImages }
-               disabled={ isWorking }
-               onChange={ changeOptions("skipImages") }/>
-        <label className="label-inline" htmlFor="skipImages">不备份图片</label>
-      </div>
-      <div className="input-group">
-        <input type="checkbox" id="skipVideos" checked={ backupOptions.skipVideos }
-               disabled={ isWorking }
-               onChange={ changeOptions("skipVideos") }/>
-        <label className="label-inline" htmlFor="skipVideos">不备份视频</label>
+               onChange={ (e) => setBackupOptions(Object.assign(backupOptions, {
+                 autoRetry: e.currentTarget.value
+               })) }/>
       </div>
       <div className="input-group">
         <button className="button" disabled={ isCancelling } onClick={ isWorking ? onCancel : onStart }>{

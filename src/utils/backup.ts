@@ -1,8 +1,8 @@
 import { BlogEntry, PostEntry, PostType } from "./models"
 import { contextData } from "./context"
-import { escapeSpecials, saveData, showPostType, showTime, tryMatch } from "./utils"
-import { invoke } from "./tauri"
-import { parse as parseHTML } from "node-html-parser"
+import { escapeSpecials, saveData, showPostType, showTime, sleep, tryMatch } from "./utils"
+import { BaseDirectory, invoke } from "./tauri"
+import { HTMLElement, parse as parseHTML } from "node-html-parser"
 
 export interface BackupOptions {
   allowFailure: boolean
@@ -10,6 +10,8 @@ export interface BackupOptions {
   skipImages: boolean
   skipVideos: boolean
   dataPath: string
+  fromLatest: boolean
+  autoRetry: number
 }
 
 const getBlogDirectory = (blog: BlogEntry, dataPath: string) => `${ dataPath }/${ blog.id }-${ blog.username }`
@@ -25,17 +27,24 @@ export const handleMedia = async (
   if (source === null) {
     return toSave
   }
-  const pathNames = new URL(source).pathname.split("/")
+  const url = source.startsWith("//") ? `https:${ source }` : source
+  const pathNames = new URL(url).pathname.split("/")
   const filename = pathNames[pathNames.length - 1]
-  try {
-    await invoke("downloadFile", {
-      source, filename: `${ getBlogDirectory(blog, options.dataPath) }/${ mediaType }s/${ filename }`,
-      referer
-    })
-    toSave = toSave.split(source).join(`./${ mediaType }s/${ filename }`)
-  } catch (e) {
-    if (!options.allowFailure) {
-      throw (e)
+  let trial = 0
+  while (trial <= options.autoRetry) {
+    try {
+      await invoke("downloadFile", {
+        source: url, filename: `${ getBlogDirectory(blog, options.dataPath) }/${ mediaType }s/${ filename }`,
+        referer
+      })
+      toSave = toSave.split(source).join(`./${ mediaType }s/${ filename }`)
+      break
+    } catch (e) {
+      trial += 1
+      if (trial > options.autoRetry) {
+        throw e
+      }
+      await sleep(3000)
     }
   }
   return toSave
@@ -56,6 +65,18 @@ const checkCancelJob = () => {
   }
 }
 
+const querySelectors = (dom: HTMLElement, firstSelector: string, ...selectors: string[]) => {
+  let result = dom.querySelector(firstSelector)
+  let i = 0
+  while (result === null && i < selectors.length) {
+    result = dom.querySelector(selectors[i++])
+  }
+  if (result === null) {
+    throw new Error("未知错误。")
+  }
+  return result
+}
+
 export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoString: string, options: BackupOptions) => {
   const log = contextData.log
   const dataPath = options.dataPath
@@ -70,18 +91,13 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
     post_id: post.id
   })
   const dom = parseHTML(rawHTML)
-  let content = dom.querySelector(".g-bd")
-  if (content === null) {
-    content = dom.querySelector(".main")
-  }
-  if (content === null) {
-    throw new Error("未知错误。")
-  }
+  const mainContainer = querySelectors(dom, ".g-bd", ".main")
+  const content = querySelectors(mainContainer, ".ct", ".ctc", ".post")
   const titleDom = dom.querySelector("title")
   const title = titleDom === null ? `${ post.title } - ${ blog.title }` : titleDom.text
   await window.tauri.createDir(`${ getBlogDirectory(blog, dataPath) }/images`, { recursive: true })
   await window.tauri.createDir(`${ getBlogDirectory(blog, dataPath) }/videos`, { recursive: true })
-  let toSave = content.innerHTML
+  let toSave = mainContainer.innerHTML
   const referer = getPostUrl(post, blog)
   const images = new Set(content
     .querySelectorAll("img")
@@ -93,7 +109,12 @@ export const backupCommonPost = async (post: PostEntry, blog: BlogEntry, infoStr
       checkCancelJob()
       i += 1
       log(`${ infoString } 备份中……下载图片（${ i }/${ images.size }）`, "info", true)
-      toSave = await handleMedia("image", image, blog, referer, toSave, options)
+      try {
+        toSave = await handleMedia("image", image, blog, referer, toSave, options)
+      } catch (e) {
+        log(image)
+        throw e
+      }
     }
   }
   const videos = new Set(content
@@ -149,6 +170,11 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions) =>
     log("没有数据信息", "error")
     return
   }
+  if (options.fromLatest) {
+    posts.sort((a, b) => b.id - a.id)
+  } else {
+    posts.sort((a, b) => a.id - b.id)
+  }
   const n = posts.length
   let succeeded = 0
   let i = 0
@@ -184,10 +210,11 @@ export const backupPosts = async (posts: PostEntry[], options: BackupOptions) =>
           log(`${ infoString } 备份失败。错误信息：<br>${ e.toString() }`, options.allowFailure ? "warning" : "error", true)
           if (!options.allowFailure) {
             err = e
-            const filename = `${ options.dataPath }/error-${ showTime(new Date(), true) }.txt`
             await window.tauri.writeFile({
-              file: filename,
+              file: `error-${ showTime(new Date(), true) }.txt`,
               contents: `${ err?.name }\n${ err?.message }\n${ err?.stack }`
+            }, {
+              dir: BaseDirectory.App
             })
             shouldStop = true
           }

@@ -17,7 +17,7 @@
     "react-router-dom": "^5.2.0",
     "tauri": "^0.6",
     "typescript": "^3.9.3",
-    "xlsx": "^0.16.2"
+    "xlsx": "^0.17.0"
   },
   "alias": {
     "react": "preact/compat",
